@@ -18,6 +18,7 @@ function leastSquares(matrix, input){
 	return math.multiply(math.multiply(math.inv(math.multiply(math.ctranspose(matrix), matrix)), math.ctranspose(matrix)), input)
 }
 
+/*
 let test = math.matrix([
 	[1, 1],
 	[1, 2],
@@ -31,6 +32,7 @@ console.log("HI");
 function testSquares(matrix, input){
 	return math.multiply(math.multiply(math.inv(math.multiply(math.transpose(matrix), matrix)), math.transpose(matrix)), input)	
 }
+*/
 /*
 	math.matrix([
 	[1, 2, 3],
@@ -41,15 +43,18 @@ function testSquares(matrix, input){
 
 
 function getCircles(complexArr){
-	console.log(complexArr)
 	let arr = [];
 	for(let i = 0; i<complexArr.length; i++){
 		let complex = complexArr[i];
 		let radius = math.sqrt(complex.re*complex.re + complex.im*complex.im);
 		let theta = math.log(math.divide(complex, radius)).im;
-		arr.push(math.complex(math.round(radius), theta));
+		arr.push(math.complex(radius, theta));
 	}
 	return arr;
+}
+
+function getX(complexArr){
+
 }
 
 function buildMatrix(N, points){
@@ -67,16 +72,64 @@ function buildMatrix(N, points){
 			//matrix[i].push(math.multiply((1/P), expon))
 
 			//Normal
-			let expon = math.exp(math.complex(0, 2*math.PI * i * j / P));
+			/*
+			let expon = math.exp(math.complex(0, 2*math.PI * (i) * (j / (P-1))));
 			//matrix[i].push(math.multiply(point, expon));
 			matrix[i].push(expon);
+			*/
+			if(i == 0){
+				let expon = math.exp(math.complex(0, 0));
+				matrix[i].push(expon);
+			}
+			else if( i % 2 == 1){
+				let expon = math.exp(math.complex(0, 2*math.PI * (i) * (Math.round(j/2) / (P-1))));
+				matrix[i].push(expon);	
+			}
+			else{
+				let expon = math.exp(math.complex(0, -2*math.PI * (i) * (Math.round(j/2) / (P-1))));
+				matrix[i].push(expon);
+			}
 			
 		}
 	}
-	console.log(matrix);
-
 	return matrix;
 }
+
+function buildMatrix2(N, points){
+	let matrix = [];
+	let P = points.length;
+	for(let j = 0; j<N; j++){
+		matrix.push([])
+		//let point = math.complex(points[i].re, points[i].im);
+		for( let i = 0; i<P; i++){
+			
+			//Inverse
+			//let expon = math.exp(math.complex(0, 2*math.PI * i * j / N))
+			//matrix[i].push(math.multiply((1/N), expon))
+			//let expon = math.exp(math.complex(0, -2*math.PI * i * j / P))
+			//matrix[i].push(math.multiply((1/P), expon))
+
+			//Normal
+			if(i == 0){
+				let expon = math.exp(math.complex(0, -2*math.PI * (i) * (j / (P-1))));
+				matrix[j].push(math.multiply(1/(P-1), expon));
+			}
+			else if( i % 2 == 1){
+				let expon = math.exp(math.complex(0, -2*math.PI * (i) * (Math.round(j/2) / (P-1))));
+				matrix[j].push(math.multiply(1/(P-1), expon));	
+			}
+			else{
+				let expon = math.exp(math.complex(0, -2*math.PI * (i) * -(Math.round(j/2) / (P-1))));
+				matrix[j].push(math.multiply(1/(P-1), expon));	
+			}
+			
+		}
+	}
+	return matrix;
+}
+
+
+
 
 
 
@@ -105,12 +158,15 @@ function drawCircle(x, y, r, angle, ctx){
 
 
 
+let moveX = 350;
+let moveY = 280;
+
 let p = [
-		math.complex(500, 100),
-		math.complex(700, 300),
-		math.complex(500, 500),
-		math.complex(300, 300),
-		math.complex(500, 100)
+		math.complex(500 + moveX, 100 + moveY),
+		math.complex(700 + moveX, 300 + moveY),
+		math.complex(500 + moveX, 500 + moveY),
+		math.complex(300 + moveX, 300 + moveY),
+		math.complex(500 + moveX, 100 + moveY)
 		];
 
 function drawPoints(ctx, p){
@@ -127,28 +183,46 @@ function drawPoints(ctx, p){
 }
 
 
-let m = buildMatrix(4, p);
+let m = buildMatrix(2, p);
+//let m2 = buildMatrix2(3, p);
+
+//console.log(p)
+//console.log(math.multiply(m2, p))
+//console.log(math.multiply(m, math.multiply(m2, p)))
+//console.log(leastSquares(m, p))
+//console.log(math.multiply(leastSquares(m, p), m2))
+
+//console.log("Matrix")
+//console.log(m)
+
 let circles = getCircles(leastSquares(m, p));
-console.log(circles)
+//let circles = getCircles(math.multiply(m2, p))
+
+//console.log("Points");
+//console.log(getPoints(5, circles));
+//console.log(circles)
+
+
 
 function getPoints(N, points){
 
 	let matrix = [];
 	let P = points.length;
-	for( let i = 0; i<P; i++){
+	console.log(P);
+	for(let j = 0; j<N; j++){
 		matrix.push([])
 		//let point = math.complex(points[i].re, points[i].im);
-		for(let j = 0; j<N; j++){
-			
-			let expon = math.exp(math.complex(0, 2*math.PI * i * j / N))
-			matrix[i].push(math.multiply((1/N), expon))
+		for( let i = 0; i<P; i++){
+		
+			let expon = math.exp(math.complex(0, -2*math.PI * (i) * (j / (P-1))))
+			matrix[j].push(math.multiply((1/(P-1)), expon))
 			
 		}
 	}
 	return math.multiply(matrix, points);
 }
 
-console.log(getPoints(4, circles));
+
 
 function update(){
 
@@ -162,7 +236,6 @@ function update(){
 	let point = drawCircle(0, 0, circles[0].re, circles[0].im, ctx)
 	
 	let mult = 1
-	console.log(circles[0][0])
 	for(let i = 1; i<circles.length; i++){
 		if(i % 2 == 0){
 			point = drawCircle(point[0], point[1], circles[i].re, mult*angle + circles[i].im, ctx)
