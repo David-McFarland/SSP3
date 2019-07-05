@@ -1,6 +1,46 @@
 var canvas = document.getElementById('myCanvas');
 ctx = canvas.getContext('2d');
 
+canvas.addEventListener("mousemove", function (e) {
+    findxy('move', e)
+}, false);
+canvas.addEventListener("mousedown", function (e) {
+    findxy('down', e)
+}, false);
+canvas.addEventListener("mouseup", function (e) {
+    findxy('up', e)
+}, false);
+canvas.addEventListener("mouseout", function (e) {
+    findxy('out', e)
+}, false);
+
+let m;
+let circles;
+
+drawing = false;
+path = [];
+letsGo = false;
+function findxy(type, e){
+	if(!letsGo){
+		if(drawing == true && (type == 'up' || type == 'out')){
+			drawing = false;
+			path.push(math.complex(path[0].re, path[0].im))
+			m = buildMatrix(path.length-1, path);
+			circles = getCircles(leastSquares(m, path));
+			letsGo = true;
+		}
+		else if(type == 'down'){
+			drawing = true;
+			path.push(math.complex(e.clientX, e.clientY))
+			
+		}
+		else if(type == 'move' && drawing == true){
+			path.push(math.complex(e.clientX, e.clientY))
+		}	
+	}
+	
+}
+
 angle = 0.0
 ctx.fillStyle = "rgb(255, 0, 0)";
 points = []
@@ -82,11 +122,11 @@ function buildMatrix(N, points){
 				matrix[i].push(expon);
 			}
 			else if( i % 2 == 1){
-				let expon = math.exp(math.complex(0, 2*math.PI * (i) * (Math.round(j/2) / (P-1))));
+				let expon = math.exp(math.complex(0, -2*math.PI * (i) * (j) / (P)));
 				matrix[i].push(expon);	
 			}
 			else{
-				let expon = math.exp(math.complex(0, -2*math.PI * (i) * (Math.round(j/2) / (P-1))));
+				let expon = math.exp(math.complex(0, 2*math.PI * (i) * (j) / (P)));
 				matrix[i].push(expon);
 			}
 			
@@ -134,24 +174,27 @@ function buildMatrix2(N, points){
 
 
 function drawCircle(x, y, r, angle, ctx){
-	
-	ctx.beginPath();
-	ctx.arc(x, y, r, 0, Math.PI*2);
-	ctx.stroke();
-	ctx.closePath();
+	let see = true;
+	if(see){
+		ctx.beginPath();
+		ctx.arc(x, y, r, 0, Math.PI*2);
+		ctx.stroke();
+		ctx.closePath();
 
-	
+		
 
-	
-	ctx.moveTo(x, y);
-	ctx.lineTo(r*Math.cos(angle) + x, r*Math.sin(angle) + y);
-	ctx.stroke();
+		
+		ctx.moveTo(x, y);
+		ctx.lineTo(r*Math.cos(angle) + x, r*Math.sin(angle) + y);
+		ctx.stroke();
 
-	
-	ctx.beginPath();
-	ctx.arc(r*Math.cos(angle) + x, r*Math.sin(angle) + y, 4, 0, Math.PI*2);
-	ctx.fill();
-	ctx.closePath();
+		
+		ctx.beginPath();
+		ctx.arc(r*Math.cos(angle) + x, r*Math.sin(angle) + y, 4, 0, Math.PI*2);
+		ctx.fill();
+		ctx.closePath();
+
+	}
 	
 	return [r*Math.cos(angle) + x, r*Math.sin(angle) + y]
 }
@@ -165,6 +208,7 @@ let p = [
 		math.complex(500 + moveX, 100 + moveY),
 		math.complex(700 + moveX, 300 + moveY),
 		math.complex(500 + moveX, 500 + moveY),
+		math.complex(500 + moveX, 450 + moveY),
 		math.complex(300 + moveX, 300 + moveY),
 		math.complex(500 + moveX, 100 + moveY)
 		];
@@ -183,7 +227,7 @@ function drawPoints(ctx, p){
 }
 
 
-let m = buildMatrix(2, p);
+
 //let m2 = buildMatrix2(3, p);
 
 //console.log(p)
@@ -195,7 +239,6 @@ let m = buildMatrix(2, p);
 //console.log("Matrix")
 //console.log(m)
 
-let circles = getCircles(leastSquares(m, p));
 //let circles = getCircles(math.multiply(m2, p))
 
 //console.log("Points");
@@ -229,32 +272,47 @@ function update(){
 	requestAnimationFrame(update);
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-	drawPoints(ctx, p);
+	//drawPoints(ctx, p);
 
 	//console.log(canvas.width)
 	//ctx.stroke();
-	let point = drawCircle(0, 0, circles[0].re, circles[0].im, ctx)
+	if(letsGo){
+		let point = drawCircle(0, 0, circles[0].re, circles[0].im, ctx)
 	
-	let mult = 1
-	for(let i = 1; i<circles.length; i++){
-		if(i % 2 == 0){
-			point = drawCircle(point[0], point[1], circles[i].re, mult*angle + circles[i].im, ctx)
+		let mult = 1
+		for(let i = 1; i<circles.length; i++){
+			if(i % 2 == 0){
+				point = drawCircle(point[0], point[1], circles[i].re, mult*angle + circles[i].im, ctx)
+				mult++;
+			}
+			else{
+				point = drawCircle(point[0], point[1], circles[i].re, -(mult*angle + circles[i].im), ctx)
+				mult++;
+			}
 		}
-		else{
-			point = drawCircle(point[0], point[1], circles[i].re, -mult*angle + circles[i].im, ctx)
-			mult++;
+		points.push(point);
+		angle += 0.004;
+
+		ctx.beginPath()
+		//ctx.moveTo(430, 150);
+		for( let i = 0; i<points.length; i++){
+			ctx.lineTo(points[i][0], points[i][1]);
 		}
+		ctx.stroke();
+		ctx.closePath();
+
 	}
-	points.push(point);
-	angle += 0.004;
+	
 
 	ctx.beginPath()
 	//ctx.moveTo(430, 150);
-	for( let i = 0; i<points.length; i++){
-		ctx.lineTo(points[i][0], points[i][1]);
+	for( let i = 0; i<path.length; i++){
+		ctx.lineTo(path[i].re, path[i].im);
 	}
 	ctx.stroke();
 	ctx.closePath();
+
+
     //console.log("ahhh")
     //setTimeout(update(), 500);
 }
