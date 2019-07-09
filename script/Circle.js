@@ -15,20 +15,36 @@ canvas.addEventListener("mouseout", function (e) {
 }, false);
 
 let m;
+
+document.addEventListener('keydown', function (e) {
+	if(e.key == "ArrowLeft"){
+		document.getElementById('slider').value--;
+		slide(document.getElementById('slider'))
+	}
+	else if(e.key == "ArrowRight"){
+		document.getElementById('slider').value++;
+		slide(document.getElementById('slider'))
+	}
+});
+
+ctx.fillStyle = "rgb(255, 0, 0)";
+
+
 let circles;
 
-drawing = false;
-path = [];
-letsGo = false;
-angle = 0.0
-ctx.fillStyle = "rgb(255, 0, 0)";
-points = []
+let drawing = false;
+let path = [];
+let letsGo = false;
+let angle = 0.0
+let points = []
 let see = true;
-let size = 30;
+let showDrawing = true;
 
-let allCircles = [];
+
+//let allCircles = [];
 
 let numPoints = 30;
+let numCircles = 100;
 function findxy(type, e){
 	let rect = canvas.getBoundingClientRect();
 	let x = e.clientX - rect.left;
@@ -42,15 +58,10 @@ function findxy(type, e){
 			if(numPoints > path.length){
 				numPoints = path.length;
 			}
-			for(let i = 2; i<=30; i++){
-				if(i > path.length){
-					break;
-				}
-				m = buildMatrix(i, path);
-				circles = getCircles(leastSquares(m, path));
-				allCircles.push(circles)
-			}  
-			circles = allCircles[document.getElementById('slider').value-2];
+			m = buildMatrix(numCircles, path);
+			circles = getCircles(leastSquares(m, path));
+			document.getElementById('slider').max = numCircles;
+
 			letsGo = true;
 		}
 		else if(type == 'down'){
@@ -68,7 +79,8 @@ function findxy(type, e){
 	
 }
 
-document.getElementById('hide').onclick = function(){hide(this)};
+document.getElementById('hideCircles').onclick = function(){hideCircles(this)};
+document.getElementById('hideOriginal').onclick = function(){hideOriginal(this)};
 document.getElementById('clear').onclick = function(){clear()};
 document.getElementById('slider').oninput = function(){slide(this)};
 
@@ -77,7 +89,7 @@ function hide(button) {
    console.log(button);
 }​
 */
-function hide(button){
+function hideCircles(button){
 	//IF N is greater than points we don't need this.
 	if(button.innerHTML == "Hide Circles"){
 		button.innerHTML = "Show Circles"
@@ -89,19 +101,33 @@ function hide(button){
 	}
 }
 
+function hideOriginal(button){
+	//IF N is greater than points we don't need this.
+	if(button.innerHTML == "Hide Your Drawing"){
+		button.innerHTML = "Show Your Drawing"
+		showDrawing = false;
+	}
+	else{
+		button.innerHTML = "Hide Your Drawing"
+		showDrawing = true;
+	}
+}
+
 function clear(){
 	path = [];
 	allCircles = [];
 	circles = null;
 	letsGo = false;
 	points = [];
+	document.getElementById('hideOriginal').innerHTML = "Hide Your Drawing"
+	showDrawing = true;
 }
 
 
 function slide(slider){
 	document.getElementById('header').innerHTML = "Draw Something " + "(N = " + slider.value + ")";
 	points = [];
-	circles = allCircles[slider.value-2];
+	numCircles = slider.value;
 }
 
 
@@ -119,10 +145,6 @@ function getCircles(complexArr){
 		arr.push(math.complex(radius, theta));
 	}
 	return arr;
-}
-
-function getX(complexArr){
-
 }
 
 function buildMatrix(N, points){
@@ -277,7 +299,7 @@ function update(){
 		let point = drawCircle(0, 0, circles[0].re, circles[0].im, ctx)
 	
 		let mult = 1
-		for(let i = 1; i<circles.length; i++){
+		for(let i = 1; i<numCircles; i++){
 			if(i % 2 == 0){
 				point = drawCircle(point[0], point[1], circles[i].re, (-mult*angle + circles[i].im), ctx)
 				mult++;
@@ -303,20 +325,14 @@ function update(){
 
 	}
 	
-
-	ctx.beginPath()
-	//ctx.moveTo(430, 150);
-	for( let i = 0; i<path.length; i++){
-		ctx.lineTo(path[i].re, path[i].im);
-
+	if(showDrawing){
+		ctx.beginPath()
+		for( let i = 0; i<path.length; i++){
+			ctx.lineTo(path[i].re, path[i].im);
+		}
+		ctx.stroke();
+		ctx.closePath();
 	}
-	ctx.stroke();
-	ctx.closePath();
-
-
-    //console.log("ahhh")
-    //setTimeout(update(), 500);
 }
 
-//setInterval(update(), 500);
 update();
