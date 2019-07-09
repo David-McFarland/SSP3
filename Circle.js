@@ -23,37 +23,86 @@ letsGo = false;
 angle = 0.0
 ctx.fillStyle = "rgb(255, 0, 0)";
 points = []
+let see = true;
+let size = 30;
 
+let allCircles = [];
 
-let numPoints = 6;
+let numPoints = 30;
 function findxy(type, e){
+	let rect = canvas.getBoundingClientRect();
+	let x = e.clientX - rect.left;
+	let y = e.clientY - rect.top;
 	if(!letsGo){
+
 		if(drawing == true && (type == 'up' || type == 'out')){
+			//console.log(e);
 			drawing = false;
 			path.push(math.complex(path[0].re, path[0].im))
 			if(numPoints > path.length){
 				numPoints = path.length;
 			}
-			m = buildMatrix(numPoints, path);
-			circles = getCircles(leastSquares(m, path));
+			for(let i = 2; i<=30; i++){
+				if(i > path.length){
+					break;
+				}
+				m = buildMatrix(i, path);
+				circles = getCircles(leastSquares(m, path));
+				allCircles.push(circles)
+			}  
+			circles = allCircles[document.getElementById('slider').value-2];
 			letsGo = true;
 		}
 		else if(type == 'down'){
 			drawing = true;
-			path.push(math.complex(e.clientX, e.clientY))
+			path.push(math.complex(x, y))
 		}
 		else if(type == 'move' && drawing == true){
 			let temp = path.pop();
 			path.push(temp);
-			if(temp != math.complex(e.clientX, e.clientY)){
-				path.push(math.complex(e.clientX, e.clientY))
+			if(temp != math.complex(x, y)){
+				path.push(math.complex(x, y))
 			}
 		}	
 	}
 	
 }
 
+document.getElementById('hide').onclick = function(){hide(this)};
+document.getElementById('clear').onclick = function(){clear()};
+document.getElementById('slider').oninput = function(){slide(this)};
 
+/*
+function hide(button) {
+   console.log(button);
+}​
+*/
+function hide(button){
+	//IF N is greater than points we don't need this.
+	if(button.innerHTML == "Hide Circles"){
+		button.innerHTML = "Show Circles"
+		see = false;
+	}
+	else{
+		button.innerHTML = "Hide Circles"
+		see = true;
+	}
+}
+
+function clear(){
+	path = [];
+	allCircles = [];
+	circles = null;
+	letsGo = false;
+	points = [];
+}
+
+
+function slide(slider){
+	document.getElementById('header').innerHTML = "Draw Something " + "(N = " + slider.value + ")";
+	points = [];
+	circles = allCircles[slider.value-2];
+}
 
 
 function leastSquares(matrix, input){
@@ -115,7 +164,6 @@ function buildMatrix(N, points){
 }
 
 function drawCircle(x, y, r, angle, ctx){
-	let see = false;
 	if(see){
 		ctx.beginPath();
 		ctx.arc(x, y, r, 0, Math.PI*2);
@@ -225,8 +273,8 @@ function update(){
 
 	//console.log(canvas.width)
 	//ctx.stroke();
-	if(letsGo){
-		let point = drawCircle(300, 0, circles[0].re, circles[0].im, ctx)
+	if(letsGo && circles){
+		let point = drawCircle(0, 0, circles[0].re, circles[0].im, ctx)
 	
 		let mult = 1
 		for(let i = 1; i<circles.length; i++){
@@ -238,7 +286,9 @@ function update(){
 				point = drawCircle(point[0], point[1], circles[i].re, (mult*angle + circles[i].im), ctx)
 			}
 		}
-		points.push(point);
+		if(points.length < math.pi/0.04 * 2 + 1){
+			points.push(point);
+		}
 		angle += 0.04;
 
 		ctx.beginPath()
@@ -246,7 +296,9 @@ function update(){
 		for( let i = 0; i<points.length; i++){
 			ctx.lineTo(points[i][0], points[i][1]);
 		}
+		ctx.strokeStyle = "red";
 		ctx.stroke();
+		ctx.strokeStyle = "black";
 		ctx.closePath();
 
 	}

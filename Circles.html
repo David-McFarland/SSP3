@@ -4,15 +4,37 @@
 <meta charset="UTF-8">
 <title>Title of the document</title>
 
+<style>
+.canvas{
+	border:4px solid #8080FF;
+	padding-left: 0;
+    padding-right: 0;
+    display: block;
+	margin-left: auto;
+	margin-right: auto;
+}
 
+
+</style>
 </head>
 
 <body>
-	<canvas id="myCanvas" width = "1200" height = "800"></canvas>
+	<h1 id="header">Draw Something (N = 30)</h1>
+	<canvas class = "canvas" id="myCanvas" width = "1200" height = "800"></canvas>
+	
+	<button id="hide" type="button">Hide Circles</button>
+	<button id="clear" type="button">Clear Canvas</button>
+	<input id="slider" type="range" min="2" max="30" value="30">
+	
+
+
+
+
+
 	<script src="https://unpkg.com/mathjs/dist/math.min.js"></script>
 	<!--<script src="C:\Users\david\Documents\Summer19\SSP3\Circle.js"></script>-->
 	<script src="C:\Users\DavidMcFarland\Documents\Javascript\Circles\SSP3\Circle.js"></script>
-	
+
 
 </body>
 
