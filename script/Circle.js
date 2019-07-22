@@ -25,9 +25,18 @@ document.addEventListener('keydown', function (e) {
 		document.getElementById('slider').value++;
 		slide(document.getElementById('slider'))
 	}
+	else if(e.key == "m"){
+		document.getElementById('slider').value = 100;
+		slide(document.getElementById('slider'))
+	}
 });
 
 ctx.fillStyle = "rgb(255, 0, 0)";
+
+/*
+	TODO:
+		Double counting is happening because slider is clicked on
+*/
 
 
 let circles;
@@ -37,10 +46,11 @@ let path = [];
 let letsGo = false;
 let angle = 0.0
 let points = []
+let pointsLength = 0;
 let see = true;
 let showDrawing = true;
-
-
+let gif = []
+let pictures = 0;
 //let allCircles = [];
 
 let numPoints = 30;
@@ -54,14 +64,19 @@ function findxy(type, e){
 		if(drawing == true && (type == 'up' || type == 'out')){
 			//console.log(e);
 			drawing = false;
+			numCircles = 100;
 			path.push(math.complex(path[0].re, path[0].im))
-			if(numPoints > path.length){
-				numPoints = path.length;
+			if(numCircles > path.length){
+				numCircles = path.length;
 			}
 			m = buildMatrix(numCircles, path);
 			circles = getCircles(leastSquares(m, path));
 			document.getElementById('slider').max = numCircles;
-
+			document.getElementById('slider').value = numCircles;
+			document.getElementById('header').innerHTML = "Draw Something " + "(N = " + slider.value + ")";
+	
+			//numCircles = numPoints;
+			
 			letsGo = true;
 		}
 		else if(type == 'down'){
@@ -119,6 +134,7 @@ function clear(){
 	circles = null;
 	letsGo = false;
 	points = [];
+	pointsLength = 0;
 	document.getElementById('hideOriginal').innerHTML = "Hide Your Drawing"
 	showDrawing = true;
 }
@@ -127,7 +143,9 @@ function clear(){
 function slide(slider){
 	document.getElementById('header').innerHTML = "Draw Something " + "(N = " + slider.value + ")";
 	points = [];
+	pointsLength = 0;
 	numCircles = slider.value;
+	angle = 0;
 }
 
 
@@ -282,12 +300,13 @@ function getPoints(P, circles){
 }
 
 
-
+let totalPoints = math.pi/0.04 * 2 + 1;
 function update(){
 
 	requestAnimationFrame(update);
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+	ctx.fillStyle = "red";
+	
 	if(circles){
 		//drawPoints(ctx, getPoints(numPoints, circles))	
 	}
@@ -308,20 +327,25 @@ function update(){
 				point = drawCircle(point[0], point[1], circles[i].re, (mult*angle + circles[i].im), ctx)
 			}
 		}
-		if(points.length < math.pi/0.04 * 2 + 1){
+		
+		if(pointsLength < totalPoints){
 			points.push(point);
+			pointsLength++;
 		}
+
 		angle += 0.04;
 
 		ctx.beginPath()
 		//ctx.moveTo(430, 150);
-		for( let i = 0; i<points.length; i++){
+		for( let i = 0; i<pointsLength; i++){
 			ctx.lineTo(points[i][0], points[i][1]);
 		}
 		ctx.strokeStyle = "red";
 		ctx.stroke();
 		ctx.strokeStyle = "black";
 		ctx.closePath();
+
+		
 
 	}
 	
@@ -332,6 +356,12 @@ function update(){
 		}
 		ctx.stroke();
 		ctx.closePath();
+	}
+	//ctx.fillStyle = "black";
+	//ctx.font = "72px Arial";
+	
+	if(letsGo && points.length < math.pi/0.04 * 2 + 1){
+			gif.push(canvas.toDataURL("image/png"));
 	}
 }
 
